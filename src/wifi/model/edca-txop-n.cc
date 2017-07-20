@@ -27,7 +27,6 @@
 #include "dcf-state.h"
 #include "mac-tx-middle.h"
 #include "wifi-mac-trailer.h"
-#include "random-stream.h"
 #include "wifi-mac-queue.h"
 #include "qos-blocked-destinations.h"
 #include "ns3/simulator.h"
@@ -74,8 +73,8 @@ EdcaTxopN::EdcaTxopN ()
     m_currentIsFragmented (false)
 {
   NS_LOG_FUNCTION (this);
-  m_qosBlockedDestinations = new QosBlockedDestinations ();
-  m_baManager = new BlockAckManager ();
+  m_qosBlockedDestinations = Create<QosBlockedDestinations> ();
+  m_baManager = CreateObject<BlockAckManager> ();
   m_baManager->SetQueue (m_queue);
   m_baManager->SetBlockAckType (m_blockAckType);
   m_baManager->SetBlockDestinationCallback (MakeCallback (&QosBlockedDestinations::Block, m_qosBlockedDestinations));
@@ -94,10 +93,8 @@ void
 EdcaTxopN::DoDispose (void)
 {
   NS_LOG_FUNCTION (this);
-  delete m_qosBlockedDestinations;
-  delete m_baManager;
-  m_qosBlockedDestinations = 0;
   m_baManager = 0;
+  m_qosBlockedDestinations = 0;
   m_msduAggregator = 0;
   m_mpduAggregator = 0;
   DcaTxop::DoDispose ();
@@ -128,7 +125,7 @@ EdcaTxopN::CompleteAmpduTransfer (Mac48Address recipient, uint8_t tid)
 }
 
 void
-EdcaTxopN::SetWifiRemoteStationManager (Ptr<WifiRemoteStationManager> remoteManager)
+EdcaTxopN::SetWifiRemoteStationManager (const Ptr<WifiRemoteStationManager> remoteManager)
 {
   DcaTxop::SetWifiRemoteStationManager (remoteManager);
   NS_LOG_FUNCTION (this << remoteManager);
@@ -425,7 +422,7 @@ void EdcaTxopN::NotifyInternalCollision (void)
           m_dcf->UpdateFailedCw ();
         }
     }
-  m_backoffTrace = m_rng->GetNext (0, m_dcf->GetCw ());
+  m_backoffTrace = m_rng->GetInteger (0, m_dcf->GetCw ());
   m_dcf->StartBackoffNow (m_backoffTrace);
   RestartAccessIfNeeded ();
 }
@@ -434,7 +431,7 @@ void
 EdcaTxopN::NotifyCollision (void)
 {
   NS_LOG_FUNCTION (this);
-  m_backoffTrace = m_rng->GetNext (0, m_dcf->GetCw ());
+  m_backoffTrace = m_rng->GetInteger (0, m_dcf->GetCw ());
   m_dcf->StartBackoffNow (m_backoffTrace);
   RestartAccessIfNeeded ();
 }
@@ -497,7 +494,7 @@ EdcaTxopN::MissedCts (void)
       m_dcf->UpdateFailedCw ();
       m_cwTrace = m_dcf->GetCw ();
     }
-  m_backoffTrace = m_rng->GetNext (0, m_dcf->GetCw ());
+  m_backoffTrace = m_rng->GetInteger (0, m_dcf->GetCw ());
   m_dcf->StartBackoffNow (m_backoffTrace);
   RestartAccessIfNeeded ();
 }
@@ -545,7 +542,7 @@ EdcaTxopN::GotAck (void)
               m_txopTrace (m_startTxop, Simulator::Now () - m_startTxop);
             }
           m_cwTrace = m_dcf->GetCw ();
-          m_backoffTrace = m_rng->GetNext (0, m_dcf->GetCw ());
+          m_backoffTrace = m_rng->GetInteger (0, m_dcf->GetCw ());
           m_dcf->StartBackoffNow (m_backoffTrace);
           RestartAccessIfNeeded ();
         }
@@ -559,7 +556,7 @@ EdcaTxopN::GotAck (void)
             {
               m_txopTrace (m_startTxop, Simulator::Now () - m_startTxop);
               m_cwTrace = m_dcf->GetCw ();
-              m_backoffTrace = m_rng->GetNext (0, m_dcf->GetCw ());
+              m_backoffTrace = m_rng->GetInteger (0, m_dcf->GetCw ());
               m_dcf->StartBackoffNow (m_backoffTrace);
               m_fragmentNumber++;
               RestartAccessIfNeeded ();
@@ -628,7 +625,7 @@ EdcaTxopN::MissedAck (void)
       m_dcf->UpdateFailedCw ();
       m_cwTrace = m_dcf->GetCw ();
     }
-  m_backoffTrace = m_rng->GetNext (0, m_dcf->GetCw ());
+  m_backoffTrace = m_rng->GetInteger (0, m_dcf->GetCw ());
   m_dcf->StartBackoffNow (m_backoffTrace);
   RestartAccessIfNeeded ();
 }
@@ -702,7 +699,7 @@ EdcaTxopN::MissedBlockAck (uint8_t nMpdus)
       m_dcf->ResetCw ();
       m_cwTrace = m_dcf->GetCw ();
     }
-  m_backoffTrace = m_rng->GetNext (0, m_dcf->GetCw ());
+  m_backoffTrace = m_rng->GetInteger (0, m_dcf->GetCw ());
   m_dcf->StartBackoffNow (m_backoffTrace);
   RestartAccessIfNeeded ();
 }
@@ -965,7 +962,7 @@ EdcaTxopN::EndTxNoAck (void)
   m_currentPacket = 0;
   m_dcf->ResetCw ();
   m_cwTrace = m_dcf->GetCw ();
-  m_backoffTrace = m_rng->GetNext (0, m_dcf->GetCw ());
+  m_backoffTrace = m_rng->GetInteger (0, m_dcf->GetCw ());
   m_dcf->StartBackoffNow (m_backoffTrace);
   StartAccessIfNeeded ();
 }
@@ -1223,14 +1220,14 @@ EdcaTxopN::MapDestAddressForAggregation (const WifiMacHeader &hdr)
 }
 
 void
-EdcaTxopN::SetMsduAggregator (Ptr<MsduAggregator> aggr)
+EdcaTxopN::SetMsduAggregator (const Ptr<MsduAggregator> aggr)
 {
   NS_LOG_FUNCTION (this << aggr);
   m_msduAggregator = aggr;
 }
 
 void
-EdcaTxopN::SetMpduAggregator (Ptr<MpduAggregator> aggr)
+EdcaTxopN::SetMpduAggregator (const Ptr<MpduAggregator> aggr)
 {
   NS_LOG_FUNCTION (this << aggr);
   m_mpduAggregator = aggr;
@@ -1295,7 +1292,7 @@ EdcaTxopN::GotBlockAck (const CtrlBAckResponseHeader *blockAck, Mac48Address rec
           m_txopTrace (m_startTxop, Simulator::Now () - m_startTxop);
         }
       m_cwTrace = m_dcf->GetCw ();
-      m_backoffTrace = m_rng->GetNext (0, m_dcf->GetCw ());
+      m_backoffTrace = m_rng->GetInteger (0, m_dcf->GetCw ());
       m_dcf->StartBackoffNow (m_backoffTrace);
       RestartAccessIfNeeded ();
     }
@@ -1565,7 +1562,7 @@ EdcaTxopN::DoInitialize ()
   NS_LOG_FUNCTION (this);
   m_dcf->ResetCw ();
   m_cwTrace = m_dcf->GetCw ();
-  m_backoffTrace = m_rng->GetNext (0, m_dcf->GetCw ());
+  m_backoffTrace = m_rng->GetInteger (0, m_dcf->GetCw ());
   m_dcf->StartBackoffNow (m_backoffTrace);
 }
 

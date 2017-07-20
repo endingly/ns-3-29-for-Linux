@@ -21,6 +21,8 @@
 #ifndef LTE_RLC_SEQUENCE_NUMBER_H
 #define LTE_RLC_SEQUENCE_NUMBER_H
 
+#include <ns3/assert.h>
+
 #include <limits>
 #include <iostream>
 #include <stdint.h>
@@ -153,9 +155,10 @@ public:
    */
   bool operator > (const SequenceNumber10 &other) const
   {
-    SequenceNumber10 v1 ((m_value - m_modulusBase) % 1024);
-    SequenceNumber10 v2 ((other.m_value - other.m_modulusBase) % 1024);
-    return ( v1.GetValue () > v2.GetValue () );
+    NS_ASSERT (m_modulusBase == other.m_modulusBase);
+    uint16_t v1 = (m_value - m_modulusBase) % 1024;
+    uint16_t v2 = (other.m_value - other.m_modulusBase) % 1024;
+    return v1 > v2;
   }
 
   /**
