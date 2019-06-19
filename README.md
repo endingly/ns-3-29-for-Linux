@@ -46,7 +46,7 @@ included in the file doc/build.txt
 
 However, the real quick and dirty way to get started is to
 type the command
-  ./waf configure --enable-examples
+  `./waf configure --enable-examples`
 followed by
   ./waf 
 in the directory which contains
@@ -65,7 +65,7 @@ On recent Linux systems, once you have built ns-3 (with examples
 enabled), it should be easy to run the sample programs with the
 following command, such as:
 
-  ./waf --run simple-global-routing
+  `./waf --run simple-global-routing`
 
 That program should generate a simple-global-routing.tr text 
 trace file and a set of simple-global-routing-xx-xx.pcap binary
